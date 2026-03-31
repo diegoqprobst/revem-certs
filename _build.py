@@ -794,6 +794,10 @@ VERIFY = f"""<!DOCTYPE html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Verificación de Certificado · REVEM</title>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <style>
 *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
 :root {{ --green: #6BBE2E; --dark: #2D3436; --gray: #636E72; --light: #F8F9FA; --border: #DFE6E9; }}
@@ -802,7 +806,7 @@ body {{
   background: linear-gradient(135deg, #1a1a2e 0%, #2D3436 60%, #1a3a1a 100%);
   min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
 }}
-.card {{ background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); max-width: 500px; width: 100%; overflow: hidden; }}
+.card {{ background: white; border-radius: 16px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); max-width: 500px; width: 100%; overflow: hidden; position: relative; z-index: 10; }}
 .card-header {{ background: var(--dark); padding: 20px 26px; display: flex; align-items: center; gap: 13px; }}
 .card-header img {{ height: 30px; }}
 .htext h1 {{ color: white; font-size: 13px; font-weight: 600; }}
@@ -830,6 +834,34 @@ body {{
 .card-footer {{ background: var(--light); padding: 11px 26px; border-top: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }}
 .footer-logo {{ height: 16px; opacity: 0.5; }}
 .footer-text {{ font-size: 9px; color: var(--gray); }}
+
+/* Boton Descargar */
+.btn-dl {{ display: flex; align-items: center; justify-content: center; width: 100%; background: var(--dark); color: white; padding: 12px; border-radius: 8px; font-weight: 600; font-size: 13px; font-family: inherit; margin-top: 20px; text-decoration: none; cursor: pointer; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.15); transition: background 0.2s; }}
+.btn-dl:hover {{ background: #1a1a2e; }}
+
+/* HIDDEN CERT TEMPLATE FOR PDF */
+#hidden-cert {{ position: fixed; top: 0; left: 0; z-index: -9999; opacity: 0; pointer-events: none; overflow: hidden; }}
+#cert-template {{ width: 1056px; height: 748px; position: relative; background: #FFFFFF; font-family: "Montserrat", sans-serif; overflow: hidden; }}
+.c-wm {{ position: absolute; width: 100%; height: 100%; top: 0; left: 0; z-index: 0; }}
+.c-top {{ position: absolute; top: 0; left: 0; right: 0; height: 10px; background: linear-gradient(90deg, #4e9120, #6BBE2E, #4e9120); z-index: 1; }}
+.c-bot {{ position: absolute; bottom: 0; left: 0; right: 0; height: 10px; background: linear-gradient(90deg, #4e9120, #6BBE2E, #4e9120); z-index: 1; }}
+.c-confiere {{ position: absolute; top: 162px; left: 0; right: 0; text-align: center; font-size: 13px; font-weight: 400; color: #888; z-index: 1; }}
+.c-title {{ position: absolute; top: 188px; left: 60px; right: 60px; text-align: center; font-size: 30px; font-weight: 800; color: var(--dark); z-index: 1; }}
+.c-title-line {{ position: absolute; top: 234px; left: 50%; transform: translateX(-50%); width: 70px; height: 3px; background: var(--green); border-radius: 2px; z-index: 1; }}
+.c-name {{ position: absolute; top: 248px; left: 60px; right: 60px; text-align: center; font-family: "Playfair Display", serif; font-size: 38px; font-style: italic; color: var(--dark); z-index: 1; }}
+.c-desc {{ position: absolute; top: 352px; left: 90px; right: 90px; text-align: center; font-family: "Playfair Display", serif; font-size: 14px; font-style: italic; color: #444; line-height: 1.7; z-index: 1; }}
+.c-footer {{ position: absolute; bottom: 28px; left: 52px; right: 52px; display: flex; align-items: flex-end; justify-content: space-between; z-index: 1; }}
+.c-sig {{ text-align: center; width: 210px; }}
+.c-sig-img {{ height: 68px; max-width: 200px; object-fit: contain; display: block; margin: 0 auto 3px; }}
+.c-sig-line {{ width: 100%; height: 1px; background: #bbb; margin-bottom: 5px; }}
+.c-sig-italic {{ font-family: "Playfair Display", serif; font-style: italic; font-size: 12px; color: var(--dark); }}
+.c-sig-cargo {{ font-size: 10px; color: var(--gray); margin-top: 2px; font-weight: 500; }}
+.c-codes {{ text-align: center; display: flex; flex-direction: column; align-items: center; gap: 4px; }}
+.c-qr {{ width: 90px; height: 90px; }}
+.c-qr img, .c-qr canvas {{ width: 90px !important; height: 90px !important; }}
+.c-barcode {{ max-width: 200px; height: 32px; display: block; margin: 0 auto; }}
+.c-code-id {{ font-size: 7.5px; color: var(--gray); font-weight: 600; font-family: monospace; }}
+.c-verify-txt {{ font-size: 7px; color: #aaa; }}
 </style>
 </head>
 <body>
@@ -846,10 +878,68 @@ body {{
   </div>
   <div class="card-footer">
     <img class="footer-logo" src="data:image/png;base64,{LOGO_COLOR}" alt="REVEM">
-    <span class="footer-text">REVEM · Energía Ilimitada &nbsp;|&nbsp; Verificación automática de certificados</span>
+    <span class="footer-text">REVEM · Energía Ilimitada &nbsp;|&nbsp; Verificación oficial</span>
   </div>
 </div>
+
+<!-- HIDDEN CERTIFICATE FOR PDF EXPORT -->
+<div id="hidden-cert">
+  <div id="cert-template">
+    <img class="c-wm" src="{FONDO_DATA}" alt="">
+    <div class="c-top"></div><div class="c-bot"></div>
+    <div class="c-confiere">Revem Ecuador confiere el presente:</div>
+    <div class="c-title">Certificado de Participación a:</div>
+    <div class="c-title-line"></div>
+    <div class="c-name" id="cName">NOMBRE</div>
+    <div class="c-desc" id="cDesc">Descripción</div>
+    <div class="c-footer">
+      <div class="c-sig">
+        <img class="c-sig-img" src="{SIG1_DATA}" alt="">
+        <div class="c-sig-line"></div>
+        <div class="c-sig-italic">Ing. Carlos Calderón</div>
+        <div class="c-sig-cargo">Gerente de Operaciones</div>
+      </div>
+      <div class="c-codes">
+        <div id="cQR" class="c-qr"></div>
+        <svg id="cBarcode" class="c-barcode"></svg>
+        <div class="c-code-id" id="cCodeId">ID</div>
+      </div>
+      <div class="c-sig">
+        <img class="c-sig-img" src="{SIG2_DATA}" alt="">
+        <div class="c-sig-line"></div>
+        <div class="c-sig-italic">Ing. Susana Guamán</div>
+        <div class="c-sig-cargo">Jefe Dpt. Técnico</div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
+let globalCert = null;
+
+async function downloadPDF() {{
+  const btn = document.getElementById('dlBtn');
+  btn.innerHTML = '<div class="spinner" style="width:14px;height:14px;border-width:2px;margin:0 8px 0 0"></div> Generando PDF...';
+  btn.style.pointerEvents = 'none';
+  
+  try {{
+    const canvas = await html2canvas(document.getElementById('cert-template'), {{
+      scale: 2, width: 1056, height: 748,
+      useCORS: true, allowTaint: true, logging: false, backgroundColor: '#FFFFFF'
+    }});
+    const imgData = canvas.toDataURL('image/jpeg', 0.97);
+    const {{ jsPDF }} = window.jspdf;
+    const pdf = new jsPDF({{ orientation:'landscape', unit:'mm', format:'a4' }});
+    pdf.addImage(imgData, 'JPEG', 0, 0, 297, 210);
+    pdf.save(`Certificado_${{globalCert.name.replace(/\\s+/g,'_')}}_${{globalCert.id}}.pdf`);
+  }} catch(e) {{
+    alert('Hubo un error al generar el PDF. Asegúrate de estar en un navegador moderno.');
+  }}
+  
+  btn.innerHTML = '📥 Descargar mi Certificado (PDF)';
+  btn.style.pointerEvents = 'auto';
+}}
+
 (async () => {{
   const body = document.getElementById('cardBody');
   const params = new URLSearchParams(window.location.search);
@@ -859,14 +949,36 @@ body {{
       Escanea el código QR de un certificado REVEM para verificar su autenticidad.</div>`;
     return;
   }}
-  let data = null;
-  try {{ const res = await fetch('./certs.json'); if (res.ok) data = await res.json(); }} catch(e) {{}}
-  if (!data) {{
+  
+  let data = {{ certificates: [] }};
+  let successFetch = false;
+  
+  // 1. Local
+  try {{ 
+    const resLocal = await fetch('./certs.json'); 
+    if (resLocal.ok) {{
+       const localData = await resLocal.json();
+       if(localData.certificates) {{ data.certificates.push(...localData.certificates); successFetch = true; }}
+    }}
+  }} catch(e) {{}}
+  
+  // 2. Nube Google Sheets
+  try {{
+     const scriptURL = 'https://script.google.com/macros/s/AKfycbzjTgTY1FXQZhDIjTcRd2Uj0My5K_76FRdfmM4ApeOCFd84Tpl2aQeymH7wqrzUdfqk/exec';
+     const resCloud = await fetch(scriptURL);
+     if (resCloud.ok) {{
+        const cloudData = await resCloud.json();
+        if(cloudData.certificates) {{ data.certificates.push(...cloudData.certificates); successFetch = true; }}
+     }}
+  }} catch(e) {{}}
+
+  if (!successFetch) {{
     body.innerHTML = `<div class="invalid"><div class="x-icon">&#9888;</div>
       <div class="invalid-title">No se pudo verificar</div>
-      <div class="invalid-sub">El archivo de certificados no está disponible.<br>Contacta a REVEM directamente.</div></div>`;
+      <div class="invalid-sub">La base de datos no está disponible. Contacta a REVEM.</div></div>`;
     return;
   }}
+  
   const cert = data.certificates && data.certificates.find(c => c.id === certId);
   if (!cert) {{
     body.innerHTML = `<div class="invalid"><div class="x-icon">&#10007;</div>
@@ -874,10 +986,14 @@ body {{
       <div class="invalid-sub">El código <strong>${{certId}}</strong> no corresponde a ningún certificado emitido por REVEM.</div></div>`;
     return;
   }}
+  
+  globalCert = cert;
   const months = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
   let dateStr = cert.date;
   try {{ const d = new Date(cert.date+'T12:00:00'); dateStr = `${{d.getDate()}} de ${{months[d.getMonth()]}} de ${{d.getFullYear()}}`; }} catch(e) {{}}
   if (cert.city) dateStr = cert.city + ', ' + dateStr;
+  
+  // Render verified view
   body.innerHTML = `
     <div class="valid-badge">
       <div class="check">&#10003;</div>
@@ -891,7 +1007,19 @@ body {{
     <div class="code-box">
       <div><div class="code-label">Código de certificado</div><div class="code-val">${{cert.id}}</div></div>
       <span style="font-size:18px">&#128274;</span>
-    </div>`;
+    </div>
+    <button class="btn-dl" id="dlBtn" onclick="downloadPDF()">📥 Descargar mi Certificado (PDF)</button>
+  `;
+  
+  // POPULATE HIDDEN CANVAS TEMPLATE
+  document.getElementById('cName').innerHTML = cert.name.toUpperCase();
+  document.getElementById('cCodeId').innerHTML = cert.id;
+  document.getElementById('cDesc').innerHTML = `Por su participación en <em>${{cert.event}}</em>,<br>con fecha de expedición <em>${{dateStr}}</em>`;
+  
+  const verifyUrl = 'https://diegoqprobst.github.io/revem-certs/verify.html?id=' + cert.id;
+  new QRCode(document.getElementById('cQR'), {{ text: verifyUrl, width:90, height:90, colorDark:'#2D3436', colorLight:'#FFFFFF', correctLevel: QRCode.CorrectLevel.M }});
+  try {{ JsBarcode('#cBarcode', cert.id, {{ format: 'CODE128', width: 1.3, height: 30, displayValue: false, margin: 0, background: 'transparent' }}); }} catch(e) {{}}
+
 }})();
 </script>
 </body>
