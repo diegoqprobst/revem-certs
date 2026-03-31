@@ -70,12 +70,33 @@ body {
       Escanea el código QR de un certificado REVEM para verificar su autenticidad.</div>`;
     return;
   }
-  let data = null;
-  try { const res = await fetch('./certs.json'); if (res.ok) data = await res.json(); } catch(e) {}
-  if (!data) {
+  let data = { certificates: [] };
+  let successFetch = false;
+  
+  // 1. Busca certificados antiguos/empaquetados en certs.json
+  try { 
+    const resLocal = await fetch('./certs.json'); 
+    if (resLocal.ok) {
+       const localData = await resLocal.json();
+       if(localData.certificates) { data.certificates.push(...localData.certificates); successFetch = true; }
+    }
+  } catch(e) {}
+  
+  // 2. Busca certificados generados en vivo desde Google Sheets
+  try {
+     // IMPORTANTE: Sustituye la URL de abajo por la misma URL de Google Apps Script 
+     const scriptURL = 'https://script.google.com/macros/s/AKfycbyUU0QHeYwCPprRWw9-ReIbCFT-MPule1Zc-xDlGtWS4IR1VXIkFIgKqFXzxk6behGs/exec';
+     const resCloud = await fetch(scriptURL);
+     if (resCloud.ok) {
+        const cloudData = await resCloud.json();
+        if(cloudData.certificates) { data.certificates.push(...cloudData.certificates); successFetch = true; }
+     }
+  } catch(e) {}
+
+  if (!successFetch) {
     body.innerHTML = `<div class="invalid"><div class="x-icon">&#9888;</div>
       <div class="invalid-title">No se pudo verificar</div>
-      <div class="invalid-sub">El archivo de certificados no está disponible.<br>Contacta a REVEM directamente.</div></div>`;
+      <div class="invalid-sub">El archivo y base de datos de certificados no está disponible.<br>Contacta a REVEM directamente.</div></div>`;
     return;
   }
   const cert = data.certificates && data.certificates.find(c => c.id === certId);
